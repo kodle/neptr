@@ -4,10 +4,14 @@ const client = new Discord.Client();
 const fs = require("fs");
 const {get} = require("snekfetch");
 const ms = require('ms');
+const randomnum = require("unique-random");
+const rand = randomnum(1, 6);
+const { MessageEmbed } = require('discord.js')
+const superagent = require('superagent');
 const moment = require('moment');
 moment.locale();
 const time = moment().format('Do MMMM YYYY, h:mm:ss')
-const token = 'token here'
+const token = 'TOKEN_HERE'
 
 let points = JSON.parse(fs.readFileSync("./points.json", "utf-8"));
 const prefix = "$";
@@ -16,17 +20,34 @@ const prefix = "$";
 client.on('ready', () => {
   client.user.setPresence({ game: {name : 'discord.gg/Y46RgyR', type: 0}});
 
+  let embed = new Discord.RichEmbed()
+  .setColor("#39FF14")
+  .setTitle("Le bot est allumé.")
+  var channel = client.channels.get('329322280201224203');
+  channel.send(embed);
+
   console.log(`===========================`);
   console.log(`Connecté en tant que ${client.user.tag}`);
   console.log('Votre token: ' + token);
   console.log('');
+  console.log('Version de Node: ' + process.version);
+  console.log('Version de DiscordJS: ' + Discord.version);
   console.log(`===========================`);
 });
 
 client.on('message', message => {
 
+
+  if (!message.content.startsWith(prefix) || message.author.bot) return;
+
+  const args = message.content.slice(prefix.length).split(' ');
+  const command = args.shift().toLowerCase();
+
   var member = message.mentions.members.first();
   const log = '[' + time + '] Commande executé par ' + message.author + ': '
+  var snekfetch = require("snekfetch");
+
+  // -------- COMMANDES -------
 
 
     if (message.content.startsWith(prefix + 'link')) {
@@ -36,6 +57,7 @@ client.on('message', message => {
       .setTitle("Bienvenue !")
       .addField("Lien du GitHub", "https://github.com/Lunarly")
       .addField("Lien du site", "https://lunarly.github.io/")
+      .addField("Lien des projets", "https://github.com/orgs/Lunarly/projects/")
       .addField("Lien d'invitation", "https://discord.gg/Y46RgyR")
       message.channel.send(embed)
       console.log(log+"link")
@@ -58,8 +80,14 @@ client.on('message', message => {
       .addField("$rules", "Envoie les règles")
       .addField("$link", "Envoie les liens du serveur")
       .addField("$info", "Envoie quelques infos sur le bot")
-      .addField("$lenny", "( ͡° ͜ʖ ͡°)")
+      .addField("$playlist", "Envoie une superbe playlist Spotify")
       .addField("$level", "Envoie votre niveau et vos points")
+      .addField("$avatar [utilisateur]", "Envoie l'image de profile de l'utilisateur")
+      .addField("$cat", "Envoie une image aléatoire de chat")
+      .addField("$dice", "Fait rouler un dé et donne un nombre entre 1 et 6")
+      .addField("$ping", "Tester la latence du bot")
+      .addField("$lenny", "( ͡° ͜ʖ ͡°)")
+      .addField("$say", "Faire parler le bot avec vos mots (Admin seulement)")
       .addField("$kick", "Expulser un membre (Admin seulement)")
       .addField("$mute/$demute", "Mute un membre (Admin seulement)")
       message.channel.send(embed);
@@ -76,10 +104,93 @@ client.on('message', message => {
       console.log(log+"info")
     }
 
+    if (message.content.startsWith(prefix + "meerkat")) {
+      const embed = new Discord.RichEmbed()
+      .setColor(0x1ABC9C)
+      .setTitle("Meerkat")
+      .addField("Projet", "https://github.com/orgs/Lunarly/projects/1")
+      .addField("GitHub", "https://github.com/Lunarly/meerkat")
+      message.channel.send(embed);
+      console.log(log+"meerkat")
+    }
+
+    if (message.content.startsWith(prefix + "cc")) {
+      const embed = new Discord.RichEmbed()
+      .setColor(0x1ABC9C)
+      .setTitle("Crowd Control")
+      .addField("Projet", "https://github.com/orgs/Lunarly/projects/2")
+      .addField("GitHub", "https://github.com/Lunarly/crowdcontrol")
+      .addField("Docs Google (Pre-Sequel)", "https://docs.google.com/document/d/1y9ohgDki2pJkUyG3J6uvwd3ebwOAXgxQGJ1GL2XUR6I/edit")
+      .addField("Docs Google (2)", "https://docs.google.com/document/d/1tmK7vXW2kYjjMjOQMVqJNYsuHYSB37Kx3W26_t9gjcE/edit")
+      message.channel.send(embed);
+      console.log(log+"cc")
+    }
+
+
     if (message.content.startsWith(prefix + 'lenny')) {
     message.channel.send("( ͡° ͜ʖ ͡°)")
     console.log(log+"( ͡° ͜ʖ ͡°)")
     }
+
+    if (message.content.startsWith(prefix + 'avatar')) {
+      if (!message.mentions.users.size) {
+        return message.reply(`${message.author.displayAvatarURL}`);
+      }
+    }
+
+    if (message.content.startsWith(prefix + 'cat')) {
+        try {
+             get('https://aws.random.cat/meow').then(response => {
+                   message.channel.send({files: [{attachment: response.body.file, name: `cat.${response.body.file.split('.')[4]}`}]});
+                   console.log(log + "cat");
+                    })
+                    } catch (e) {
+                         console.log('Erreur de $cat');
+                         }
+                       };
+
+    if(message.content.startsWith(prefix + 'playlist')) {
+      message.channel.send("Voilà une superbe playlist ! \nhttps://open.spotify.com/user/1hg3mjywldar5fd24m5lii7el/playlist/5TdUWC4xnsmpvY0F5rOTkY?si=fOOSrJy5TdeQ3CpQsoQPFw")
+      console.log(log+"playlist")
+    }
+
+    if (message.content.startsWith(prefix + "dice")) {
+        message.channel.send("Le dé roule...")
+        .then(message => message.edit(`Le numéro du dé est ${rand()}`));
+        console.log(log+`dice ${rand()}`)
+      }
+
+    if (message.content.startsWith(prefix + "ping")) {
+       message.channel.send(new Date().getTime() - message.createdTimestamp + " ms");
+       console.log(log+"ping")
+    }
+
+
+      // ---------------- ADMINISTRATION ---------------------
+
+      if (message.content.startsWith(prefix + "shutdown")) {
+        if(message.member.roles.some(r=>["Admin"].includes(r.name)) ) {
+        let embed = new Discord.RichEmbed()
+        .setColor("#ff1d00")
+        .setTitle("Le bot est éteint.")
+        message.channel.send(embed); // send the embed
+        // unload all commands before shutting down
+        var interval = setInterval (function () {
+                process.exit(1);
+      }, 1 * 250);
+    }
+  }
+
+
+
+      if(command === "say"){
+        if(message.member.roles.some(r=>["Admin"].includes(r.name)) ) {
+        let text = args.slice(0).join(" ");
+        message.delete();
+        message.channel.send(text);
+        console.log(log + "say")
+        }
+      }
 
     if (message.content.startsWith(prefix + 'kick')) {
       if(message.member.roles.some(r=>["Admin"].includes(r.name)) ) {
@@ -148,6 +259,10 @@ client.on('guildMemberAdd', member => {
 client.on("guildMemberRemove", (member) => {
   if(newUsers.has(member.id)) newUsers.delete(member.id);
 });
+
+module.exports.help = {
+    name: "dice"
+}
 
 
 
