@@ -11,20 +11,32 @@ const superagent = require('superagent');
 const moment = require('moment');
 moment.locale();
 const time = moment().format('Do MMMM YYYY, h:mm:ss')
-const token = 'TOKEN_HERE'
+const token = process.env.TOKEN
+// For Glitch only
+const http = require('http');
+const express = require('express');
+const app = express();
+app.get("/", (request, response) => {
+  console.log(Date.now() + " Ping Received");
+  response.sendStatus(200);
+});
+app.listen(process.env.PORT);
+setInterval(() => {
+  http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
+}, 280000);
+// End of Glitch only
 
 let points = JSON.parse(fs.readFileSync("./points.json", "utf-8"));
 const prefix = "$";
 
-
 client.on('ready', () => {
   client.user.setPresence({ game: {name : 'discord.gg/Y46RgyR', type: 0}});
 
-  let embed = new Discord.RichEmbed()
+  /* let embed = new Discord.RichEmbed()
   .setColor("#39FF14")
   .setTitle("Le bot est allumé.")
   var channel = client.channels.get('329322280201224203');
-  channel.send(embed);
+  channel.send(embed); */
 
   console.log(`===========================`);
   console.log(`Connecté en tant que ${client.user.tag}`);
